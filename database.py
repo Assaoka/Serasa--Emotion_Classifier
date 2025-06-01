@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import random
+import streamlit as st
 
 # Variáveis globais que serão inicializadas pela função init
 engine = None
@@ -15,6 +16,10 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
+    idade = Column(Integer, nullable=True)         
+    genero = Column(String, nullable=True)        # gênero como string (ex: 'Masculino', 'Feminino', 'Outro')
+    escolaridade = Column(String, nullable=True)  # nível de escolaridade como string (ex: 'Ensino Médio', 'Superior')
+    
     evaluations = relationship("Evaluation", back_populates="user")
 
 class News(Base):
@@ -56,11 +61,10 @@ def init(db_url: str):
     SessionLocal = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-def create_user(email: str) -> int:
-    """Cria um usuário caso não exista e retorna o ID."""
+def create_user(email: str, idade: int, genero: str, escolaridade: str) -> int:
     session = SessionLocal()
     try:
-        user = User(email=email)
+        user = User(email=email, idade=idade, genero=genero, escolaridade=escolaridade)
         session.add(user)
         session.commit()
         session.refresh(user)
@@ -71,6 +75,7 @@ def create_user(email: str) -> int:
         return existing.id
     finally:
         session.close()
+
 
 
 def create_news(headline: str, link: str, summary: str) -> int:
@@ -132,3 +137,38 @@ def get_random_news_with_three_sentences():
         return random.choice(filtered)
     finally:
         session.close()
+
+def email_exists(email: str) -> bool:
+    """Verifica se o e-mail já está cadastrado na base."""
+    session = SessionLocal()
+    try:
+        exists = session.query(User).filter_by(email=email).first() is not None
+        return exists
+    finally:
+        session.close()
+
+def register_user_with_questions(email: str):
+    """Verifica se o e-mail existe e, se não existir, cadastra o usuário com perguntas adicionais."""
+    if email_exists(email):
+        st.success("Usuário já cadastrado.")
+        return
+    else:
+        st.header("Novo Usuário - Responda algumas perguntas:")
+        age = st.number_input("Quantos anos você tem?", min_value=1, max_value=120, step=1)
+        gender = st.selectbox("Qual o seu gênero?", ["Masculino", "Feminino", "Outro"])
+        education = st.selectbox("Qual o seu nível de escolaridade?", [
+            "Ensino Fundamental", 
+            "Ensino Médio", 
+            "Superior", 
+            "Pós-graduação", 
+            "Mestrado", 
+            "Doutorado",
+            "Outro"
+        ])
+
+        if st.button("Confirmar Cadastro"):
+            user_id = create_user(email, age, gender, education)  # passando os novos dados
+            st.success(f"Usuário criado com ID {user_id}!")
+            st.write(f"Idade: {age}")
+            st.write(f"Gênero: {gender}")
+            st.write(f"Escolaridade: {education}")

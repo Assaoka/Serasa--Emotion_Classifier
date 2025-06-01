@@ -2,3 +2,4 @@ sqlalchemy
 streamlit
 psycopg2
 pandas
+authlib.integrations.requests_client
