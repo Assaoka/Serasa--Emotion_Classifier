@@ -1,0 +1,8 @@
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit secrets (credenciais)
+.streamlit/secrets.toml
