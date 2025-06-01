@@ -77,7 +77,6 @@ def create_user(email: str, idade: int, genero: str, escolaridade: str) -> int:
         session.close()
 
 
-
 def create_news(headline: str, link: str, summary: str) -> int:
     """Insere uma notícia e retorna o ID."""
     session = SessionLocal()
@@ -135,6 +134,24 @@ def get_random_news_with_three_sentences():
         if not filtered:
             return None
         return random.choice(filtered)
+    finally:
+        session.close()
+
+def get_user_by_email(email: str) -> dict:
+    """Busca e retorna um dicionário com as informações do usuário dado o e-mail."""
+    session = SessionLocal()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        if user is None:
+            return None
+        # Retorna as informações do usuário como dicionário
+        return {
+            "id": user.id,
+            "email": user.email,
+            "idade": user.idade,
+            "genero": user.genero,
+            "escolaridade": user.escolaridade
+        }
     finally:
         session.close()
 
