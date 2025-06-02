@@ -9,7 +9,11 @@ client_secret = st.secrets["client_secret"]
 DATABASE_URL = st.secrets["postgres"]
 init(DATABASE_URL)
 
-redirect_uri = 'http://localhost:8501'
+# Ambiente local:
+# redirect_uri = 'http://localhost:8501'
+
+# Quando estamos no local público:
+redirect_uri = 'https://serasa--emotionclassifier-bxg6zimdlwweszk4euow7z.streamlit.app/'
 authorization_endpoint = 'https://accounts.google.com/o/oauth2/auth'
 token_endpoint = 'https://oauth2.googleapis.com/token'
 userinfo_endpoint = 'https://openidconnect.googleapis.com/v1/userinfo'
