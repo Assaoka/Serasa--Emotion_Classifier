@@ -3,20 +3,21 @@ from authlib.integrations.requests_client import OAuth2Session
 from database import init, create_user, create_evaluation, get_random_news_with_three_sentences, email_exists, register_user_with_questions, get_user_by_email
 
 # Credenciais
-client_id = st.secrets["client_id"]
-client_secret = st.secrets["client_secret"]
-
-DATABASE_URL = st.secrets["postgres"]
-init(DATABASE_URL)
-
-# Ambiente local:
-# redirect_uri = 'http://localhost:8501'
+client_id = st.secrets["auth_google"]["client_id"]
+client_secret = st.secrets["auth_google"]["client_secret"]
+redirect_uri = st.secrets["auth"]["redirect_uri"]
+server_metadata_url = st.secrets["auth_google"]["server_metadata_url"]
 
 # Quando estamos no local público:
-redirect_uri = 'https://serasa--emotionclassifier-bxg6zimdlwweszk4euow7z.streamlit.app/'
-authorization_endpoint = 'https://accounts.google.com/o/oauth2/auth'
-token_endpoint = 'https://oauth2.googleapis.com/token'
-userinfo_endpoint = 'https://openidconnect.googleapis.com/v1/userinfo'
+#redirect_uri = 'https://serasa--emotionclassifier-bxg6zimdlwweszk4euow7z.streamlit.app/'
+
+DATABASE_URL = st.secrets["auth"]["postgres"]
+init(DATABASE_URL)
+
+# OAuth endpoints
+authorization_endpoint = "https://accounts.google.com/o/oauth2/auth"
+token_endpoint = "https://oauth2.googleapis.com/token"
+userinfo_endpoint = "https://openidconnect.googleapis.com/v1/userinfo"
 
 EMOTIONS = ['Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo']
 POLARITIES = ['Positivo', 'Neutro', 'Negativo']
@@ -42,7 +43,7 @@ def start_google_auth_flow():
         scope='openid email profile',
         redirect_uri=redirect_uri
     )
-    auth_url, state = oauth.create_authorization_url(authorization_endpoint)
+    auth_url, state = oauth.create_authorization_url(authorization_endpoint) #Url de autorização
     st.experimental_set_query_params(state=state)  # salva o estado
     st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_url}">', unsafe_allow_html=True)
     st.stop()  # para evitar execução adicional
