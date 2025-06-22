@@ -6,8 +6,8 @@ st.set_page_config(page_title="Login com Google", page_icon="🔐")
 st.title("🔐 Autenticação com Google")
 
 # Carregando variáveis do secrets.toml
-client_id = st.secrets["auth_google"]["client_id"]
-client_secret = st.secrets["auth_google"]["client_secret"]
+client_id = st.secrets["auth"]["google"]["client_id"]
+client_secret = st.secrets["auth"]["google"]["client_secret"]
 redirect_uri = st.secrets["auth"]["redirect_uri"]
 
 # Endpoints do Google OAuth
@@ -30,7 +30,6 @@ auth_url, state = oauth.create_authorization_url(authorization_endpoint)
 if "token" not in st.session_state:
     st.markdown(f"[👉 Clique aqui para fazer login com o Google]({auth_url})")
 
-    # ✅ Substituição feita aqui:
     code = st.query_params.get("code")
     if code:
         token = oauth.fetch_token(token_endpoint, code=code)

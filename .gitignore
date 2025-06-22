@@ -9,3 +9,7 @@ __pycache__/
 
 venv/
 .env
+
+# Arquivos que não devem ser versionados
+teste1.py
+teste3.py
