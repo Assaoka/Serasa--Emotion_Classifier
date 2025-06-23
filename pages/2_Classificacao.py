@@ -9,6 +9,10 @@ EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
 user_id = auth_utils.get_or_register_user()
+auth_utils.sidebar_login_info()
+if st.session_state.get('training_done', 0) < 3:
+    st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
+    st.stop()
 
 st.title("Classificação de Notícias")
 
@@ -72,5 +76,5 @@ if cols[0].button('Salvar Avaliação', use_container_width=True):
         st.error('Preencha todos os campos antes de salvar.')
 
 if cols[1].button('Pular Notícia', use_container_width=True):
-    st.session_state.pop('current_news')
+    st.session_state.pop('current_news', None)
     st.rerun()

@@ -1,6 +1,6 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, func
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean, func
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base, joinedload
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import random
@@ -16,9 +16,11 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    idade = Column(Integer, nullable=True)         
+    idade = Column(Integer, nullable=True)
     genero = Column(String, nullable=True)        # gênero como string (ex: 'Masculino', 'Feminino', 'Outro')
     escolaridade = Column(String, nullable=True)  # nível de escolaridade como string (ex: 'Ensino Médio', 'Superior')
+    le_noticias = Column(Boolean, nullable=True)  # se costuma ler notícias financeiras
+    investe = Column(Boolean, nullable=True)      # se costuma investir
     
     evaluations = relationship("Evaluation", back_populates="user")
 
@@ -61,10 +63,18 @@ def init(db_url: str):
     SessionLocal = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-def create_user(email: str, idade: int, genero: str, escolaridade: str) -> int:
+def create_user(email: str, idade: int, genero: str, escolaridade: str,
+                le_noticias: bool, investe: bool) -> int:
     session = SessionLocal()
     try:
-        user = User(email=email, idade=idade, genero=genero, escolaridade=escolaridade)
+        user = User(
+            email=email,
+            idade=idade,
+            genero=genero,
+            escolaridade=escolaridade,
+            le_noticias=le_noticias,
+            investe=investe,
+        )
         session.add(user)
         session.commit()
         session.refresh(user)
@@ -177,7 +187,9 @@ def get_user_by_email(email: str) -> dict:
             "email": user.email,
             "idade": user.idade,
             "genero": user.genero,
-            "escolaridade": user.escolaridade
+            "escolaridade": user.escolaridade,
+            "le_noticias": user.le_noticias,
+            "investe": user.investe,
         }
     finally:
         session.close()
@@ -193,11 +205,12 @@ def email_exists(email: str) -> bool:
 
 
 def get_evaluations_by_user(user_id: int):
-    """Retorna todas as avaliações feitas por um usuário."""
+    """Retorna todas as avaliações feitas por um usuário, incluindo a notícia."""
     session = SessionLocal()
     try:
         return (
             session.query(Evaluation)
+            .options(joinedload(Evaluation.news))
             .filter(Evaluation.user_id == user_id)
             .all()
         )
