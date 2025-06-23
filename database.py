@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -129,11 +129,38 @@ def get_random_news_with_three_sentences():
     session = SessionLocal()
     try:
         all_news = session.query(News).all()
-        # Filtra apenas resumos com exatamente 3 frases (separadas por ". ")
         filtered = [n for n in all_news if len(n.summary.split('. ')) == 3]
         if not filtered:
             return None
         return random.choice(filtered)
+    finally:
+        session.close()
+
+
+def get_news_least_classified(user_id: int):
+    """Retorna aleatoriamente uma notícia com menor número de avaliações."""
+    session = SessionLocal()
+    try:
+        # total de avaliacoes por noticia (usuarios distintos)
+        counts = (
+            session.query(
+                News,
+                func.count(func.distinct(Evaluation.user_id)).label("cnt"),
+            )
+            .outerjoin(Evaluation)
+            .group_by(News.id)
+            .all()
+        )
+        # noticias ja avaliadas pelo usuario
+        evaluated = {
+            n_id for (n_id,) in session.query(Evaluation.news_id).filter_by(user_id=user_id).all()
+        }
+        candidates = [(news, cnt) for news, cnt in counts if news.id not in evaluated and len(news.summary.split('. ')) == 3]
+        if not candidates:
+            return None
+        min_cnt = min(cnt for _, cnt in candidates)
+        pool = [news for news, cnt in candidates if cnt == min_cnt]
+        return random.choice(pool)
     finally:
         session.close()
 
@@ -164,28 +191,16 @@ def email_exists(email: str) -> bool:
     finally:
         session.close()
 
-def register_user_with_questions(email: str):
-    """Verifica se o e-mail existe e, se não existir, cadastra o usuário com perguntas adicionais."""
-    if email_exists(email):
-        st.success("Usuário já cadastrado.")
-        return
-    else:
-        st.header("Novo Usuário - Responda algumas perguntas:")
-        age = st.number_input("Quantos anos você tem?", min_value=1, max_value=120, step=1)
-        gender = st.selectbox("Qual o seu gênero?", ["Masculino", "Feminino", "Outro"])
-        education = st.selectbox("Qual o seu nível de escolaridade?", [
-            "Ensino Fundamental", 
-            "Ensino Médio", 
-            "Superior", 
-            "Pós-graduação", 
-            "Mestrado", 
-            "Doutorado",
-            "Outro"
-        ])
 
-        if st.button("Confirmar Cadastro"):
-            user_id = create_user(email, age, gender, education)  # passando os novos dados
-            st.success(f"Usuário criado com ID {user_id}!")
-            st.write(f"Idade: {age}")
-            st.write(f"Gênero: {gender}")
-            st.write(f"Escolaridade: {education}")
+def get_evaluations_by_user(user_id: int):
+    """Retorna todas as avaliações feitas por um usuário."""
+    session = SessionLocal()
+    try:
+        return (
+            session.query(Evaluation)
+            .filter(Evaluation.user_id == user_id)
+            .all()
+        )
+    finally:
+        session.close()
+
