@@ -8,7 +8,7 @@ init(DATABASE_URL)
 
 def ensure_logged_in():
     """Garante que o usuário esteja autenticado via Auth0."""
-    if not st.experimental_user.is_logged_in:
+    if not st.user.is_logged_in:
         st.info("Você não está autenticado.")
         if st.button("Entrar com Auth0"):
             st.login("auth0")
@@ -19,7 +19,7 @@ def get_or_register_user() -> int:
     """Retorna o ID do usuário logado ou solicita cadastro."""
     ensure_logged_in()
 
-    userinfo = st.experimental_user
+    userinfo = st.user
     email = userinfo.email
     if not email:
         st.error("Não foi possível obter o email do usuário.")

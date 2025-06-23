@@ -23,27 +23,33 @@ news = st.session_state.get('current_news')
 if not news:
     st.stop()
 
-st.header(news.headline)
+st.subheader(news.headline)
 
 sentences = [s if s.endswith('.') else s + '.' for s in news.summary.split('. ')]
 
 def select(label, options, key):
     return st.selectbox(label, options=options, key=key)
 
-headline_sent = select('Sentimento da Manchete', EMOTIONS, 'h_sent')
-headline_pol = select('Polaridade da Manchete', POLARITIES, 'h_pol')
+cols = st.columns(2)
+with cols[0]: headline_sent = select('Sentimento da Manchete', EMOTIONS, 'h_sent')
+with cols[1]: headline_pol = select('Polaridade da Manchete', POLARITIES, 'h_pol')
+st.write("---")
 
 sentiments = []
 polarities = []
 for i, sent in enumerate(sentences, 1):
     st.write(f"**Frase {i}:** {sent}")
-    sentiments.append(select(f'Sentimento {i}', EMOTIONS, f'sent_{i}'))
-    polarities.append(select(f'Polaridade {i}', POLARITIES, f'pol_{i}'))
+    cols = st.columns(2)
+    with cols[0]: sentiments.append(select(f'Sentimento {i}', EMOTIONS, f'sent_{i}'))
+    with cols[1]: polarities.append(select(f'Polaridade {i}', POLARITIES, f'pol_{i}'))
+    st.write("---")
 
-general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
-general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
+cols = st.columns(2)
+with cols[0]: general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
+with cols[1]: general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
 
-if st.button('Salvar Avaliação'):
+cols = st.columns(2)
+if cols[0].button('Salvar Avaliação', use_container_width=True):
     values = [headline_sent, headline_pol, general_sent, general_pol] + sentiments + polarities
     if all(v != 'Não selecionado' for v in values):
         create_evaluation(
@@ -61,10 +67,10 @@ if st.button('Salvar Avaliação'):
                 del st.session_state[key]
         st.session_state.pop('current_news')
         st.success('Avaliação salva!')
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error('Preencha todos os campos antes de salvar.')
 
-if st.button('Pular Notícia'):
-    st.session_state.pop('current_news', None)
-    st.experimental_rerun()
+if cols[1].button('Pular Notícia', use_container_width=True):
+    st.session_state.pop('current_news')
+    st.rerun()
