@@ -2,6 +2,13 @@ import streamlit as st
 import pandas as pd
 import auth_utils
 
+DICT = dict(pd.read_csv('dictionary.csv').values)
+
+def show_definitions(text: str):
+    found = [t for t in DICT if t.lower() in text.lower()]
+    for term in found:
+        st.caption(f"**{term}**: {DICT[term]}")
+
 EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
@@ -35,7 +42,22 @@ data = st.session_state.training_data
 idx = st.session_state.training_index
 row = data.iloc[idx]
 
+if st.session_state.get('show_solution'):
+    expected = st.session_state.pop('expected')
+    st.subheader('Gabarito')
+    st.write(expected)
+    if st.button('Continuar'):
+        st.session_state.show_solution = False
+        if st.session_state.training_index < len(data) - 1:
+            st.session_state.training_index += 1
+        else:
+            st.success('Treinamento finalizado.')
+            st.session_state.training_index = 0
+        st.rerun()
+    st.stop()
+
 st.subheader(row['manchete'])
+show_definitions(row['manchete'])
 
 sentences = [row['f1'], row['f2'], row['f3']]
 
@@ -51,6 +73,7 @@ sentiments = []
 polarities = []
 for i, sent in enumerate(sentences, 1):
     st.text(f'Frase {i}: {sent}')
+    show_definitions(sent)
     cols = st.columns(2)
     with cols[0]:
         sentiments.append(st.selectbox(f'Sentimento {i}', EMOTIONS, key=f't_s{i}'))
@@ -68,22 +91,46 @@ cols = st.columns(2)
 if cols[0].button('Salvar Resposta', use_container_width=True):
     values = [h_sent, h_pol, g_sent, g_pol] + sentiments + polarities
     if all(v != 'Não selecionado' for v in values):
-        
+        labels = [
+            'Sentimento da Manchete',
+            'Sentimento 1',
+            'Sentimento 2',
+            'Sentimento 3',
+            'Sentimento Geral',
+            'Polaridade da Manchete',
+            'Polaridade 1',
+            'Polaridade 2',
+            'Polaridade 3',
+            'Polaridade Geral',
+        ]
         st.session_state.training_done += 1
+        user_ans = [h_sent] + sentiments + [g_sent] + [h_pol] + polarities + [g_pol]
+        expected_ans = [
+            row['sent_manchete'],
+            row['sent1'],
+            row['sent2'],
+            row['sent3'],
+            row['sent_geral'],
+            row['pol_manchete'],
+            row['pol1'],
+            row['pol2'],
+            row['pol3'],
+            row['pol_geral'],
+        ]
+        df_result = pd.DataFrame({'Sua Resposta': user_ans, 'Gabarito': expected_ans}, index=labels)
+        st.session_state.expected = df_result
+        st.session_state.show_solution = True
         for k in list(st.session_state.keys()):
             if k.startswith('t_'):
                 del st.session_state[k]
-        if st.session_state.training_index < len(data) - 1:
-            st.session_state.training_index += 1
-            st.rerun()
-        else:
-            st.success('Treinamento finalizado.')
-            st.session_state.training_index = 0
+        st.rerun()
     else:
         st.error('Preencha todos os campos antes de salvar.')
 if cols[1].button('Pular Notícia', use_container_width=True):
     if st.session_state.training_index < len(data) - 1:
         st.session_state.training_index += 1
+        st.session_state.show_solution = False
         st.rerun()
     else:
         st.session_state.training_index = 0
+        st.session_state.show_solution = False
