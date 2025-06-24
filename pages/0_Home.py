@@ -1,6 +1,9 @@
 import streamlit as st
 import auth_utils
 
+user_id = auth_utils.get_or_register_user()
+auth_utils.sidebar_login_info(show=True)
+
 st.markdown("""
 # Anotação de Sentimentos em Notícias Financeiras
 

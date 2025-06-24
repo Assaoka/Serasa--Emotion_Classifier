@@ -2,25 +2,12 @@ import streamlit as st
 import pandas as pd
 import auth_utils
 
-DICT = dict(pd.read_csv('dictionary.csv').values)
-
 def show_definitions(text: str):
     found = [t for t in DICT if t.lower() in text.lower()]
     for term in found:
         st.caption(f"**{term}**: {DICT[term]}")
 
-EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
-POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
-
-DESCRIPTIONS = {
-    'Felicidade': 'Alegria, satisfação ou bem-estar',
-    'Tristeza': 'Sentimento de perda ou desânimo',
-    'Nojo': 'Repulsa ou aversão',
-    'Raiva': 'Irritação ou hostilidade',
-    'Medo': 'Apreensão diante de uma ameaça',
-    'Surpresa': 'Reação ao inesperado',
-    'Desprezo': 'Sentimento de superioridade ou desdém',
-}
+DICT = dict(pd.read_csv('dictionary.csv').values)
 
 user_id = auth_utils.get_or_register_user()
 auth_utils.sidebar_login_info(show=False)
@@ -32,6 +19,20 @@ if 'training_data' not in st.session_state:
     st.session_state.training_data = df.sample(frac=1).reset_index(drop=True)
     st.session_state.training_index = 0
     st.session_state.training_done = 0
+
+
+EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
+POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
+
+DESCRIPTIONS = {
+    'Felicidade': 'Notícias que transmitem otimismo e celebração de resultados positivos, como lucro recorde, valorização de ações ou projeções de crescimento que evocam satisfação e bem‐estar no leitor.',
+    'Tristeza': 'Notícias que destacam perdas, quedas acentuadas de mercado, cortes de dividendos ou previsões pessimistas que causam sentimento de decepção, desalento ou pesar.',
+    'Nojo': 'Notícias que expressam repulsa diante de fraudes, escândalos de corrupção ou práticas abusivas em instituições financeiras, provocando aversão moral ou sensorial.',
+    'Raiva': 'Notícias que comunicam injustiças, abusos de poder, alta de tarifas ou decisões políticas nocivas, gerando indignação e desejo de retaliação ou correção.',
+    'Medo': 'Notícias que ressaltam riscos iminentes, crises econômicas, volatilidade extrema ou ameaças ao patrimônio, mobilizando alerta, tensão e impulso de proteção ou fuga.',
+    'Surpresa': 'Notícias sobre eventos súbitos e inesperados — como choque de mercado, fusões-surpresa ou mudanças de política monetária não antecipadas — que capturam a atenção e exigem rápida reavaliação.',
+    'Desprezo': 'Notícias que manifestam desdém ou escárnio em relação a empresas, gestores ou reguladores tidos como incompetentes, corruptos ou moralmente inferiores, criando sensação de superioridade crítica.',
+}
 
 with st.sidebar:
     st.header('Emoções de Ekman')

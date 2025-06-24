@@ -6,6 +6,12 @@ from database import (
     get_news_least_classified,
 )
 
+user_id = auth_utils.get_or_register_user()
+auth_utils.sidebar_login_info(show=False)
+if st.session_state.get('training_done', 0) < 3:
+    st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
+    st.stop()
+
 DICT = dict(pd.read_csv('dictionary.csv').values)
 
 def show_definitions(text: str):
@@ -16,11 +22,21 @@ def show_definitions(text: str):
 EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
-user_id = auth_utils.get_or_register_user()
-auth_utils.sidebar_login_info(show=False)
-if st.session_state.get('training_done', 0) < -1:
-    st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
-    st.stop()
+DESCRIPTIONS = {
+    'Felicidade': 'Notícias que transmitem otimismo e celebração de resultados positivos, como lucro recorde, valorização de ações ou projeções de crescimento que evocam satisfação e bem‐estar no leitor.',
+    'Tristeza': 'Notícias que destacam perdas, quedas acentuadas de mercado, cortes de dividendos ou previsões pessimistas que causam sentimento de decepção, desalento ou pesar.',
+    'Nojo': 'Notícias que expressam repulsa diante de fraudes, escândalos de corrupção ou práticas abusivas em instituições financeiras, provocando aversão moral ou sensorial.',
+    'Raiva': 'Notícias que comunicam injustiças, abusos de poder, alta de tarifas ou decisões políticas nocivas, gerando indignação e desejo de retaliação ou correção.',
+    'Medo': 'Notícias que ressaltam riscos iminentes, crises econômicas, volatilidade extrema ou ameaças ao patrimônio, mobilizando alerta, tensão e impulso de proteção ou fuga.',
+    'Surpresa': 'Notícias sobre eventos súbitos e inesperados — como choque de mercado, fusões-surpresa ou mudanças de política monetária não antecipadas — que capturam a atenção e exigem rápida reavaliação.',
+    'Desprezo': 'Notícias que manifestam desdém ou escárnio em relação a empresas, gestores ou reguladores tidos como incompetentes, corruptos ou moralmente inferiores, criando sensação de superioridade crítica.',
+}
+
+with st.sidebar:
+    st.header('Emoções de Ekman')
+    for emo, desc in DESCRIPTIONS.items():
+        st.markdown(f'**{emo}**: {desc}')
+
 
 # Reset fields from previous interactions before widgets are created
 if st.session_state.pop('reset_fields', False):
