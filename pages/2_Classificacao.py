@@ -1,9 +1,17 @@
 import streamlit as st
 import auth_utils
+import pandas as pd
 from database import (
     create_evaluation,
     get_news_least_classified,
 )
+
+DICT = dict(pd.read_csv('dictionary.csv').values)
+
+def show_definitions(text: str):
+    found = [t for t in DICT if t.lower() in text.lower()]
+    for term in found:
+        st.caption(f"**{term}**: {DICT[term]}")
 
 EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
@@ -28,6 +36,7 @@ if not news:
     st.stop()
 
 st.subheader(news.headline)
+show_definitions(news.headline)
 
 sentences = [news.f1, news.f2, news.f3]
 
@@ -43,6 +52,7 @@ sentiments = []
 polarities = []
 for i, sent in enumerate(sentences, 1):
     st.text(f"Frase {i}: {sent}")
+    show_definitions(sent)
     cols = st.columns(2)
     with cols[0]: sentiments.append(select(f'Sentimento {i}', EMOTIONS, f'sent_{i}'))
     with cols[1]: polarities.append(select(f'Polaridade {i}', POLARITIES, f'pol_{i}'))
