@@ -22,7 +22,19 @@ if st.session_state.get('training_done', 0) < -1:
     st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
     st.stop()
 
+# Reset fields from previous interactions before widgets are created
+if st.session_state.pop('reset_fields', False):
+    for key in ['h_sent', 'h_pol', 'g_sent', 'g_pol']:
+        st.session_state.pop(key, None)
+    for i in range(1, 4):
+        st.session_state.pop(f'sent_{i}', None)
+        st.session_state.pop(f'pol_{i}', None)
+    st.session_state.pop('current_news', None)
+
 st.title("Classificação de Notícias")
+
+if 'msg' in st.session_state:
+    st.success(st.session_state.pop('msg'))
 
 if 'current_news' not in st.session_state:
     news_item = get_news_least_classified(user_id)
@@ -62,14 +74,9 @@ cols = st.columns(2)
 with cols[0]: general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
 with cols[1]: general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
 
-def zerar_campos():
-    st.session_state['h_sent'] = 'Não selecionado'
-    st.session_state['h_pol'] = 'Não selecionado'
-    for i in range(1, 4):
-        st.session_state[f'sent_{i}'] = 'Não selecionado'
-        st.session_state[f'pol_{i}'] = 'Não selecionado'
-    st.session_state['g_sent'] = 'Não selecionado'
-    st.session_state['g_pol'] = 'Não selecionado'
+def request_reset():
+    """Flag that fields should be cleared on the next run."""
+    st.session_state['reset_fields'] = True
     
 cols = st.columns(2)
 if cols[0].button('Salvar Avaliação', use_container_width=True):
@@ -85,17 +92,14 @@ if cols[0].button('Salvar Avaliação', use_container_width=True):
             general_sentiment=EMOTIONS.index(general_sent),
             general_polarity=POLARITIES.index(general_pol),
         )
-        for key in list(st.session_state.keys()):
-            if key.startswith(('h_', 'g_', 'sent_', 'pol_')):
-                del st.session_state[key]
-        st.session_state.pop('current_news')
-        st.success('Avaliação salva!')
-        zerar_campos()
+        st.session_state.pop('current_news', None)
+        st.session_state['msg'] = 'Avaliação salva!'
+        request_reset()
         st.rerun()
     else:
         st.error('Preencha todos os campos antes de salvar.')
 
 if cols[1].button('Pular Notícia', use_container_width=True):
     st.session_state.pop('current_news', None)
-    zerar_campos()
+    request_reset()
     st.rerun()
