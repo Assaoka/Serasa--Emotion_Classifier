@@ -16,7 +16,7 @@ DESCRIPTIONS = {
 }
 
 user_id = auth_utils.get_or_register_user()
-auth_utils.sidebar_login_info()
+auth_utils.sidebar_login_info(show=False)
 
 st.title('Treinamento')
 

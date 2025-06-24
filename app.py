@@ -14,9 +14,7 @@ st.html('''
 
 import auth_utils
 user_id = auth_utils.get_or_register_user()
-auth_utils.sidebar_login_info()
-
-st.sidebar.success("Selecione uma página acima")
+auth_utils.sidebar_login_info(show=False)
 
 pg = st.navigation([
     st.Page("pages/0_Home.py", title="Home", icon="🏠"),

@@ -66,9 +66,9 @@ def get_or_register_user() -> int:
     return user["id"]
 
 
-def sidebar_login_info():
+def sidebar_login_info(show: bool = True):
     """Exibe informações do usuário logado e opção de logout."""
-    if st.user.is_logged_in:
+    if st.user.is_logged_in and show:
         st.sidebar.write(f"Logado como {st.user.name or ''} ({st.user.email})")
         st.sidebar.caption(
             "Seu nome e email são usados apenas para login. Somente suas respostas aos formulários comporão o dataset."
