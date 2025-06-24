@@ -29,7 +29,7 @@ if not news:
 
 st.subheader(news.headline)
 
-sentences = [s if s.endswith('.') else s + '.' for s in news.summary.split('. ')]
+sentences = [news.f1, news.f2, news.f3]
 
 def select(label, options, key):
     return st.selectbox(label, options=options, key=key)
