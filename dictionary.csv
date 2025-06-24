@@ -1,5 +1,24 @@
 termo,descricao
-Selic,Taxa b\u00e1sica de juros da economia brasileira.
-IPCA,\u00cdndice oficial de infla\u00e7\u00e3o do pa\u00eds.
-CDB,T\u00edtulo de renda fixa emitido por bancos.
-Copom,\u00d3rg\u00e3o do Banco Central que define a taxa Selic.
+"Selic","Taxa básica de juros da economia brasileira. Define o piso para as demais taxas de juros, influencia o custo do crédito e é usada para controlar a inflação."
+"IPCA","Índice Nacional de Preços ao Consumidor Amplo, referência oficial de inflação no Brasil. Mede a variação dos preços de bens e serviços para o consumidor."
+"CDB","Certificado de Depósito Bancário, título de renda fixa emitido por bancos para captar recursos. Pode render taxa prefixada ou pós-fixada, normalmente atrelada ao CDI."
+"Copom","Comitê de Política Monetária do Banco Central do Brasil, responsável por definir a meta da taxa Selic em suas reuniões periódicas."
+"FMI","Fundo Monetário Internacional, organização global que orienta políticas econômicas, concede empréstimos a países e promove a cooperação monetária internacional."
+"CDI","Certificado de Depósito Interbancário, taxa média dos empréstimos de curtíssimo prazo entre bancos. Serve de referência para muitos investimentos de renda fixa."
+"Ibovespa","Índice da Bolsa de Valores de São Paulo que reúne as ações mais negociadas e representa o desempenho geral do mercado de ações brasileiro."
+"LCI","Letra de Crédito Imobiliário, título de renda fixa emitido por bancos, lastreado em créditos do setor imobiliário. Isento de Imposto de Renda para pessoas físicas."
+"LCA","Letra de Crédito do Agronegócio, título de renda fixa emitido por bancos, lastreado em créditos ao setor agrícola. Também é isento de IR para pessoa física."
+"Debênture","Título de dívida emitido por empresas para captar recursos diretamente no mercado. O investidor recebe juros periódicos e o valor principal no vencimento."
+"Spread","Diferença entre a taxa de juros cobrada pelos bancos em empréstimos e a taxa paga em aplicações; também pode ser a diferença entre preço de compra e venda de um ativo."
+"Câmbio","Taxa de conversão entre duas moedas. Indica quanto se paga de uma moeda para obter outra."
+"Ptax","Taxa de câmbio oficial calculada diariamente pelo Banco Central do Brasil. Usada em contratos comerciais e estatísticas oficiais."
+"Balança comercial","Diferença entre o valor das exportações e importações de bens de um país em um período. Superávit ocorre quando exporta mais do que importa."
+"Superávit primário","Saldo positivo das contas do governo antes do pagamento de juros da dívida. É importante para controlar o endividamento público."
+"Dívida pública","Total de débitos do governo com credores internos e externos. Mede o quanto o Estado deve e é usado para avaliar a sustentabilidade fiscal."
+"PIB","Produto Interno Bruto, soma de todos os bens e serviços produzidos em um país em determinado período. Indicador de tamanho e saúde da economia."
+"Inflação","Aumento geral e contínuo dos preços na economia. Diminui o poder de compra da moeda e é acompanhada por índices como IPCA."
+"IPO","Oferta Pública Inicial, processo pelo qual uma empresa abre seu capital e passa a ter ações negociadas em bolsa."
+"Dividendos","Parte do lucro de uma empresa que é distribuída aos acionistas como remuneração pelo investimento."
+"Liquidez","Facilidade e rapidez com que um ativo pode ser convertido em dinheiro sem afetar seu preço de mercado."
+"FGC","Fundo Garantidor de Créditos, instituição que protege investidores de depósitos bancários até o limite de R$ 250.000,00 por CPF e por instituição."
+"Boletim Focus","Relatório semanal com projeções de instituições financeiras para indicadores econômicos do Brasil, como inflação, juros e câmbio."
