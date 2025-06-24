@@ -2,16 +2,7 @@ import streamlit as st
 import pandas as pd
 import auth_utils
 
-EMOTIONS = [
-    'Não selecionado',
-    'Felicidade',
-    'Tristeza',
-    'Nojo',
-    'Raiva',
-    'Medo',
-    'Surpresa',
-    'Desprezo'
-]
+EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
 DESCRIPTIONS = {
@@ -35,20 +26,16 @@ if 'training_data' not in st.session_state:
     st.session_state.training_index = 0
     st.session_state.training_done = 0
 
-st.sidebar.header('Colinha - Emoções de Ekman')
-for emo, desc in DESCRIPTIONS.items():
-    st.sidebar.markdown(f'**{emo}**: {desc}')
-
-st.write(
-    'A seguir você encontrará notícias para praticar a classificação. '
-    'Classifique pelo menos três para prosseguir, mas sinta-se à vontade para completar todas.'
-)
+with st.sidebar:
+    st.header('Emoções de Ekman')
+    for emo, desc in DESCRIPTIONS.items():
+        st.markdown(f'**{emo}**: {desc}')
 
 data = st.session_state.training_data
 idx = st.session_state.training_index
 row = data.iloc[idx]
 
-st.subheader(row['headline'])
+st.subheader(row['manchete'])
 
 sentences = [row['f1'], row['f2'], row['f3']]
 
@@ -77,22 +64,26 @@ with cols[0]:
 with cols[1]:
     g_pol = st.selectbox('Polaridade Geral', POLARITIES, key='t_g_pol')
 
-if st.button('Salvar Resposta', use_container_width=True):
+cols = st.columns(2)
+if cols[0].button('Salvar Resposta', use_container_width=True):
     values = [h_sent, h_pol, g_sent, g_pol] + sentiments + polarities
     if all(v != 'Não selecionado' for v in values):
+        
         st.session_state.training_done += 1
         for k in list(st.session_state.keys()):
             if k.startswith('t_'):
                 del st.session_state[k]
         if st.session_state.training_index < len(data) - 1:
             st.session_state.training_index += 1
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.success('Treinamento finalizado.')
+            st.session_state.training_index = 0
     else:
         st.error('Preencha todos os campos antes de salvar.')
-
-st.write(f'Avaliações concluídas: {st.session_state.training_done}')
-
-if st.session_state.training_done >= 3:
-    st.page_link('pages/2_Classificacao.py', label='Ir para Classificação')
+if cols[1].button('Pular Notícia', use_container_width=True):
+    if st.session_state.training_index < len(data) - 1:
+        st.session_state.training_index += 1
+        st.rerun()
+    else:
+        st.session_state.training_index = 0

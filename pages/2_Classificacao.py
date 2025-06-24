@@ -5,7 +5,7 @@ from database import (
     get_news_least_classified,
 )
 
-EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo']
+EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
 user_id = auth_utils.get_or_register_user()
@@ -52,6 +52,15 @@ cols = st.columns(2)
 with cols[0]: general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
 with cols[1]: general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
 
+def zerar_campos():
+    st.session_state['h_sent'] = 'Não selecionado'
+    st.session_state['h_pol'] = 'Não selecionado'
+    for i in range(1, 4):
+        st.session_state[f'sent_{i}'] = 'Não selecionado'
+        st.session_state[f'pol_{i}'] = 'Não selecionado'
+    st.session_state['g_sent'] = 'Não selecionado'
+    st.session_state['g_pol'] = 'Não selecionado'
+    
 cols = st.columns(2)
 if cols[0].button('Salvar Avaliação', use_container_width=True):
     values = [headline_sent, headline_pol, general_sent, general_pol] + sentiments + polarities
@@ -71,10 +80,12 @@ if cols[0].button('Salvar Avaliação', use_container_width=True):
                 del st.session_state[key]
         st.session_state.pop('current_news')
         st.success('Avaliação salva!')
+        zerar_campos()
         st.rerun()
     else:
         st.error('Preencha todos os campos antes de salvar.')
 
 if cols[1].button('Pular Notícia', use_container_width=True):
     st.session_state.pop('current_news', None)
+    zerar_campos()
     st.rerun()

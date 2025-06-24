@@ -13,3 +13,6 @@ venv/
 # Arquivos que não devem ser versionados
 teste1.py
 teste3.py
+a.ipynb
+upload_news.py
+upload_news.py

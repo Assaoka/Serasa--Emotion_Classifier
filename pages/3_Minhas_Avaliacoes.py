@@ -3,7 +3,7 @@ import pandas as pd
 import auth_utils
 from database import get_evaluations_by_user
 
-EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo']
+EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
 POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
 user_id = auth_utils.get_or_register_user()
