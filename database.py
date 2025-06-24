@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean, func
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean, func, Float
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base, joinedload
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -30,6 +30,13 @@ class News(Base):
     headline = Column(String, nullable=False)
     link = Column(String, nullable=False)
     summary = Column(String, nullable=False)
+    f1 = Column(String, nullable=False)
+    f2 = Column(String, nullable=False)
+    f3 = Column(String, nullable=False)
+    prompt_tokens = Column(Integer)
+    completion_tokens = Column(Integer)
+    total_tokens = Column(Integer)
+    duration = Column(Float)
     evaluations = relationship("Evaluation", back_populates="news")
 
 class Evaluation(Base):
@@ -87,11 +94,24 @@ def create_user(email: str, idade: int, genero: str, escolaridade: str,
         session.close()
 
 
-def create_news(headline: str, link: str, summary: str) -> int:
+def create_news(headline: str, link: str, summary: str, f1: str, f2: str, f3: str,
+                prompt_tokens: int = None, completion_tokens: int = None,
+                total_tokens: int = None, duration: float = None) -> int:
     """Insere uma notícia e retorna o ID."""
     session = SessionLocal()
     try:
-        news = News(headline=headline, link=link, summary=summary)
+        news = News(
+            headline=headline,
+            link=link,
+            summary=summary,
+            f1=f1,
+            f2=f2,
+            f3=f3,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_tokens,
+            duration=duration,
+        )
         session.add(news)
         session.commit()
         session.refresh(news)
@@ -139,7 +159,7 @@ def get_random_news_with_three_sentences():
     session = SessionLocal()
     try:
         all_news = session.query(News).all()
-        filtered = [n for n in all_news if len(n.summary.split('. ')) == 3]
+        filtered = [n for n in all_news if n.f1 and n.f2 and n.f3]
         if not filtered:
             return None
         return random.choice(filtered)
@@ -165,7 +185,11 @@ def get_news_least_classified(user_id: int):
         evaluated = {
             n_id for (n_id,) in session.query(Evaluation.news_id).filter_by(user_id=user_id).all()
         }
-        candidates = [(news, cnt) for news, cnt in counts if news.id not in evaluated and len(news.summary.split('. ')) == 3]
+        candidates = [
+            (news, cnt)
+            for news, cnt in counts
+            if news.id not in evaluated and news.f1 and news.f2 and news.f3
+        ]
         if not candidates:
             return None
         min_cnt = min(cnt for _, cnt in candidates)

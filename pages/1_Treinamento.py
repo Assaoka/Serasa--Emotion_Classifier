@@ -50,7 +50,7 @@ row = data.iloc[idx]
 
 st.subheader(row['headline'])
 
-sentences = [s if s.endswith('.') else s + '.' for s in row['summary'].split('. ')][:3]
+sentences = [row['f1'], row['f2'], row['f3']]
 
 cols = st.columns(2)
 with cols[0]:

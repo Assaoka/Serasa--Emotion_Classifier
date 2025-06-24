@@ -19,7 +19,7 @@ if not evals:
 
 records = []
 for e in evals:
-    sentences = [s if s.endswith('.') else s + '.' for s in e.news.summary.split('. ')][:3]
+    sentences = [e.news.f1, e.news.f2, e.news.f3]
     records.append({
         'data': e.date,
         'manchete': e.news.headline,
