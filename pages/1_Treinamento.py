@@ -63,7 +63,7 @@ st.write('---')
 sentiments = []
 polarities = []
 for i, sent in enumerate(sentences, 1):
-    st.write(f'**Frase {i}:** {sent}')
+    st.text(f'Frase {i}: {sent}')
     cols = st.columns(2)
     with cols[0]:
         sentiments.append(st.selectbox(f'Sentimento {i}', EMOTIONS, key=f't_s{i}'))

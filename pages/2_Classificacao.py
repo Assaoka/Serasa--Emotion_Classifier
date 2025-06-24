@@ -10,7 +10,7 @@ POLARITIES = ['Não selecionado', 'Positivo', 'Neutro', 'Negativo']
 
 user_id = auth_utils.get_or_register_user()
 auth_utils.sidebar_login_info()
-if st.session_state.get('training_done', 0) < 3:
+if st.session_state.get('training_done', 0) < -1:
     st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
     st.stop()
 
@@ -42,7 +42,7 @@ st.write("---")
 sentiments = []
 polarities = []
 for i, sent in enumerate(sentences, 1):
-    st.write(f"**Frase {i}:** {sent}")
+    st.text(f"Frase {i}: {sent}")
     cols = st.columns(2)
     with cols[0]: sentiments.append(select(f'Sentimento {i}', EMOTIONS, f'sent_{i}'))
     with cols[1]: polarities.append(select(f'Polaridade {i}', POLARITIES, f'pol_{i}'))
