@@ -44,11 +44,12 @@ idx = st.session_state.training_index
 row = data.iloc[idx]
 
 if st.session_state.get('show_solution'):
-    expected = st.session_state.pop('expected')
+    expected = st.session_state.get('expected')
     st.subheader('Gabarito')
     st.write(expected)
     if st.button('Continuar'):
         st.session_state.show_solution = False
+        st.session_state.pop('expected', None)
         if st.session_state.training_index < len(data) - 1:
             st.session_state.training_index += 1
         else:
