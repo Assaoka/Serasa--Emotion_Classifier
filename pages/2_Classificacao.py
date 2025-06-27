@@ -42,6 +42,16 @@ with st.sidebar:
     for emo, desc in DESCRIPTIONS.items():
         st.markdown(f'**{emo}**: {desc}')
 
+# Reset fields from previous interactions before widgets are created
+if st.session_state.pop('reset_fields', False):
+    for key in ['h_sent', 'h_pol', 'g_sent', 'g_pol']:
+        st.session_state.pop(key, None)
+    for i in range(1, 4):
+        st.session_state.pop(f'sent_{i}', None)
+        st.session_state.pop(f'pol_{i}', None)
+    st.session_state.pop('current_news', None)
+    st.session_state.pop('unknown_terms', None)
+
 st.title("Classificação de Notícias")
 
 if 'msg' in st.session_state:
@@ -64,7 +74,9 @@ show_definitions(news.headline)
 sentences = [news.f1, news.f2, news.f3]
 
 def select(label, options, key):
-    return st.selectbox(label, options=options, key=key)
+    # Definindo o valor padrão para o selectbox a partir de session_state ou 'Não selecionado'
+    default_value = st.session_state.get(key, 'Não selecionado')
+    return st.selectbox(label, options=options, key=key, index=options.index(default_value))
 
 cols = st.columns(2)
 with cols[0]: headline_sent = select('Sentimento da Manchete', EMOTIONS, 'h_sent')
@@ -90,9 +102,8 @@ unknown_terms = st.text_input(
 )
 
 def request_reset():
-    for key in ['h_sent', 'h_pol', 'g_sent', 'g_pol'] + [f'sent_{i}' for i in range(1, 4)] + [f'pol_{i}' for i in range(1, 4)]:
-        st.session_state[key] = 'Não selecionado'
-    st.session_state['unknown_terms'] = ''
+    """Flag that fields should be cleared on the next run."""
+    st.session_state['reset_fields'] = True
 
 cols = st.columns(2)
 if cols[0].button('Salvar Avaliação', use_container_width=True):
