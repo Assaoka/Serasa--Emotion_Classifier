@@ -97,9 +97,7 @@ cols = st.columns(2)
 with cols[0]: general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
 with cols[1]: general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
 
-unknown_terms = st.text_input(
-    'Termos que você não conhece (separe por vírgulas)', key='unknown_terms'
-)
+unknown_terms = st.text_input('Termos que você não conhece (separe por vírgulas)', key='unknown_terms', value='')
 
 def request_reset():
     """Flag that fields should be cleared on the next run."""
