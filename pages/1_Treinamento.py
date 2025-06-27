@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import auth_utils
+from database import get_user_by_email, update_user_qnt_class, create_terms
 
 def show_definitions(text: str):
     found = [t for t in DICT if t.lower() in text.lower()]
@@ -11,14 +12,15 @@ DICT = dict(pd.read_csv('dictionary.csv').values)
 
 user_id = auth_utils.get_or_register_user()
 auth_utils.sidebar_login_info(show=False)
+user_info = get_user_by_email(st.user.email)
 
 st.title('Treinamento')
 
 if 'training_data' not in st.session_state:
     df = pd.read_csv('training_samples.csv')
-    st.session_state.training_data = df.sample(frac=1).reset_index(drop=True)
-    st.session_state.training_index = 0
-    st.session_state.training_done = 0
+    st.session_state.training_data = df.reset_index(drop=True)
+    st.session_state.training_index = user_info.get('qnt_class', 0)
+    st.session_state.training_done = user_info.get('qnt_class', 0)
 
 
 EMOTIONS = ['Não selecionado', 'Felicidade', 'Tristeza', 'Nojo', 'Raiva', 'Medo', 'Surpresa', 'Desprezo', 'Neutro']
@@ -89,6 +91,10 @@ with cols[0]:
 with cols[1]:
     g_pol = st.selectbox('Polaridade Geral', POLARITIES, key='t_g_pol')
 
+unknown_terms = st.text_input(
+    'Termos que você não conhece (separe por vírgulas)', key='t_terms'
+)
+
 cols = st.columns(2)
 if cols[0].button('Salvar Resposta', use_container_width=True):
     values = [h_sent, h_pol, g_sent, g_pol] + sentiments + polarities
@@ -106,6 +112,9 @@ if cols[0].button('Salvar Resposta', use_container_width=True):
             'Polaridade Geral',
         ]
         st.session_state.training_done += 1
+        update_user_qnt_class(user_id, st.session_state.training_done)
+        if unknown_terms:
+            create_terms(idx, unknown_terms.split(','))
         user_ans = [h_sent] + sentiments + [g_sent] + [h_pol] + polarities + [g_pol]
         expected_ans = [
             row['sent_manchete'],
@@ -129,10 +138,19 @@ if cols[0].button('Salvar Resposta', use_container_width=True):
     else:
         st.error('Preencha todos os campos antes de salvar.')
 if cols[1].button('Pular Notícia', use_container_width=True):
+    if unknown_terms:
+        create_terms(idx, unknown_terms.split(','))
     if st.session_state.training_index < len(data) - 1:
         st.session_state.training_index += 1
         st.session_state.show_solution = False
+        for k in list(st.session_state.keys()):
+            if k.startswith('t_'):
+                del st.session_state[k]
         st.rerun()
     else:
         st.session_state.training_index = 0
         st.session_state.show_solution = False
+        for k in list(st.session_state.keys()):
+            if k.startswith('t_'):
+                del st.session_state[k]
+        st.rerun()

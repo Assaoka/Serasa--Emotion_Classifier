@@ -55,11 +55,20 @@ def get_or_register_user() -> int:
                     "Doutorado",
                 ],
             )
+            course = st.text_input("Qual seu curso?")
             reads = st.checkbox("Você costuma ler notícias financeiras?")
             invests = st.checkbox("Você costuma investir?")
             submitted = st.form_submit_button("Confirmar Cadastro")
             if submitted:
-                user_id = create_user(email, age, gender, education, reads, invests)
+                user_id = create_user(
+                    email,
+                    age,
+                    gender,
+                    education,
+                    course,
+                    reads,
+                    invests,
+                )
                 st.success("Cadastro concluído!")
                 return user_id
             st.stop()
