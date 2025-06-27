@@ -91,10 +91,8 @@ unknown_terms = st.text_input(
 
 def request_reset():
     for key in ['h_sent', 'h_pol', 'g_sent', 'g_pol'] + [f'sent_{i}' for i in range(1, 4)] + [f'pol_{i}' for i in range(1, 4)]:
-        try:
-            del st.session_state[key]
-        except KeyError:
-            pass
+        st.session_state[key] = 'Não selecionado'
+    st.session_state['unknown_terms'] = ''
 
 cols = st.columns(2)
 if cols[0].button('Salvar Avaliação', use_container_width=True):
