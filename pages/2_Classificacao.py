@@ -4,10 +4,15 @@ import pandas as pd
 from database import (
     create_evaluation,
     get_news_least_classified,
+    create_terms,
+    get_user_by_email,
 )
 
 user_id = auth_utils.get_or_register_user()
 auth_utils.sidebar_login_info(show=False)
+user_info = get_user_by_email(st.user.email)
+if 'training_done' not in st.session_state:
+    st.session_state.training_done = user_info.get('qnt_class', 0)
 if st.session_state.get('training_done', 0) < 3:
     st.warning('Complete pelo menos 3 exemplos no treinamento antes de classificar.')
     st.stop()
@@ -46,6 +51,7 @@ if st.session_state.pop('reset_fields', False):
         st.session_state.pop(f'sent_{i}', None)
         st.session_state.pop(f'pol_{i}', None)
     st.session_state.pop('current_news', None)
+    st.session_state.pop('unknown_terms', None)
 
 st.title("Classificação de Notícias")
 
@@ -90,6 +96,10 @@ cols = st.columns(2)
 with cols[0]: general_sent = select('Sentimento Geral', EMOTIONS, 'g_sent')
 with cols[1]: general_pol = select('Polaridade Geral', POLARITIES, 'g_pol')
 
+unknown_terms = st.text_input(
+    'Termos que você não conhece (separe por vírgulas)', key='unknown_terms'
+)
+
 def request_reset():
     """Flag that fields should be cleared on the next run."""
     st.session_state['reset_fields'] = True
@@ -108,6 +118,8 @@ if cols[0].button('Salvar Avaliação', use_container_width=True):
             general_sentiment=EMOTIONS.index(general_sent),
             general_polarity=POLARITIES.index(general_pol),
         )
+        if unknown_terms:
+            create_terms(news.id, unknown_terms.split(','))
         st.session_state.pop('current_news', None)
         st.session_state['msg'] = 'Avaliação salva!'
         request_reset()
@@ -116,6 +128,8 @@ if cols[0].button('Salvar Avaliação', use_container_width=True):
         st.error('Preencha todos os campos antes de salvar.')
 
 if cols[1].button('Pular Notícia', use_container_width=True):
+    if unknown_terms:
+        create_terms(news.id, unknown_terms.split(','))
     st.session_state.pop('current_news', None)
     request_reset()
     st.rerun()

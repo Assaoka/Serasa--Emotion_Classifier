@@ -19,6 +19,8 @@ class User(Base):
     idade = Column(Integer, nullable=True)
     genero = Column(String, nullable=True)        # gênero como string (ex: 'Masculino', 'Feminino', 'Outro')
     escolaridade = Column(String, nullable=True)  # nível de escolaridade como string (ex: 'Ensino Médio', 'Superior')
+    curso = Column(String, nullable=True)
+    qnt_class = Column(Integer, default=0)
     le_noticias = Column(Boolean, nullable=True)  # se costuma ler notícias financeiras
     investe = Column(Boolean, nullable=True)      # se costuma investir
     
@@ -63,6 +65,13 @@ class Evaluation(Base):
     news = relationship("News", back_populates="evaluations")
 
 
+class Term(Base):
+    __tablename__ = 'terms'
+    id = Column(Integer, primary_key=True)
+    news_index = Column(Integer, nullable=False)
+    term = Column(String, nullable=False)
+
+
 def init(db_url: str):
     """Inicializa a conexão com o banco de dados e cria as tabelas."""
     global engine, SessionLocal
@@ -71,7 +80,8 @@ def init(db_url: str):
     Base.metadata.create_all(bind=engine)
 
 def create_user(email: str, idade: int, genero: str, escolaridade: str,
-                le_noticias: bool, investe: bool) -> int:
+                curso: str, le_noticias: bool, investe: bool,
+                qnt_class: int = 0) -> int:
     session = SessionLocal()
     try:
         user = User(
@@ -79,6 +89,8 @@ def create_user(email: str, idade: int, genero: str, escolaridade: str,
             idade=idade,
             genero=genero,
             escolaridade=escolaridade,
+            curso=curso,
+            qnt_class=qnt_class,
             le_noticias=le_noticias,
             investe=investe,
         )
@@ -212,9 +224,35 @@ def get_user_by_email(email: str) -> dict:
             "idade": user.idade,
             "genero": user.genero,
             "escolaridade": user.escolaridade,
+            "curso": user.curso,
+            "qnt_class": user.qnt_class,
             "le_noticias": user.le_noticias,
             "investe": user.investe,
         }
+    finally:
+        session.close()
+
+
+def update_user_qnt_class(user_id: int, qnt_class: int) -> None:
+    """Atualiza o contador de treinamentos realizados pelo usuário."""
+    session = SessionLocal()
+    try:
+        session.query(User).filter_by(id=user_id).update({"qnt_class": qnt_class})
+        session.commit()
+    finally:
+        session.close()
+
+
+def create_terms(news_index: int, terms: list[str]) -> None:
+    """Salva termos desconhecidos associados a uma notícia."""
+    session = SessionLocal()
+    try:
+        for t in terms:
+            t = t.strip()
+            if not t:
+                continue
+            session.add(Term(news_index=news_index, term=t))
+        session.commit()
     finally:
         session.close()
 
