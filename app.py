@@ -21,5 +21,6 @@ pg = st.navigation([
     st.Page("pages/1_Treinamento.py", title="Treinamento", icon="📚"),
     st.Page("pages/2_Classificacao.py", title="Classificação", icon="📊"),
     st.Page("pages/3_Minhas_Avaliacoes.py", title="Minhas Avaliações", icon="📋"),
+    st.Page("pages/4_Validacao.py", title="Validação", icon="📊"),
 ])
 pg.run()

@@ -279,3 +279,15 @@ def get_evaluations_by_user(user_id: int):
     finally:
         session.close()
 
+
+def get_news_by_id(news_id: int):
+    """
+    Retorna uma notícia a partir do ID.
+    
+    """
+    session = SessionLocal()
+    try:
+        news = session.query(News).filter(News.id == news_id).first()
+        return news
+    finally:
+        session.close()
