@@ -6,10 +6,24 @@ from datetime import datetime
 import random
 import streamlit as st
 
-# Variáveis globais que serão inicializadas pela função init
+Base = declarative_base()
+
+# Cache do engine para evitar reconexão a cada rerun do Streamlit (melhora performance)
+@st.cache_resource
+def _get_engine_and_session(db_url: str):
+    """Cria e retorna engine + SessionLocal uma única vez por instância do servidor."""
+    _engine = create_engine(
+        db_url,
+        pool_pre_ping=True,       # verifica conexão antes de usar do pool
+        pool_recycle=300,         # recicla conexões a cada 5 min (evita timeout do Neon)
+    )
+    _SessionLocal = sessionmaker(bind=_engine)
+    Base.metadata.create_all(bind=_engine)
+    return _engine, _SessionLocal
+
+# Variáveis globais preenchidas por init()
 engine = None
 SessionLocal = None
-Base = declarative_base()
 
 # Definição dos modelos
 class User(Base):
@@ -73,11 +87,9 @@ class Term(Base):
 
 
 def init(db_url: str):
-    """Inicializa a conexão com o banco de dados e cria as tabelas."""
+    """Inicializa a conexão com o banco de dados (cacheada via @st.cache_resource)."""
     global engine, SessionLocal
-    engine = create_engine(db_url)
-    SessionLocal = sessionmaker(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    engine, SessionLocal = _get_engine_and_session(db_url)
 
 def create_user(email: str, idade: int, genero: str, escolaridade: str,
                 curso: str, le_noticias: bool, investe: bool,

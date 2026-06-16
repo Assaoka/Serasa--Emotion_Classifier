@@ -7,11 +7,11 @@ init(DATABASE_URL)
 
 
 def ensure_logged_in():
-    """Garante que o usuário esteja autenticado via Auth0."""
+    """Garante que o usuário esteja autenticado via Google OAuth."""
     if not st.user.is_logged_in:
         st.info("Você não está autenticado.")
-        if st.button("Entrar com Auth0"):
-            st.login("auth0")
+        if st.button("Entrar com Google"):
+            st.login()
         st.stop()
 
 

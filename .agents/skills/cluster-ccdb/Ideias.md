@@ -1,0 +1,2 @@
+- [ ] Orientar criar o .sh junto com o script Python correspondente
+- [ ] Rodar os scripts dentro da pasta do script Python pra facilitar a organização
