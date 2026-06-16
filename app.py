@@ -4,6 +4,7 @@ st.set_page_config(
     page_title="Anotação de Sentimentos em Notícias Financeiras",
     page_icon= "assets/Logo.png",
 )
+st.logo("assets/Logo.png")
 
 _ = """st.html('''
 <style>
