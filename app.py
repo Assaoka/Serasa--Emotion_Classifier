@@ -5,12 +5,12 @@ st.set_page_config(
     page_icon= "src/img/unifesp_icon.ico",
 )
 
-st.html('''
+_ = """st.html('''
 <style>
     #MainMenu {visibility: collapsed;}
     footer {visibility: hidden;}
     header {visibility: hidden;} 
-</style>''')
+</style>''')"""
 
 import auth_utils
 user_id = auth_utils.get_or_register_user()
