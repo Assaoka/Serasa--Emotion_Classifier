@@ -76,7 +76,8 @@ def get_or_register_user() -> int:
 
 
 def sidebar_login_info(show: bool = True):
-    """Exibe informações do usuário logado e opção de logout."""
+    """Exibe informações do usuário logado e opção de logout, incluindo o logo do projeto."""
+    st.sidebar.image("assets/Logo.png", use_container_width=True)
     if st.user.is_logged_in and show:
         st.sidebar.write(f"Logado como {st.user.name or ''} ({st.user.email})")
         st.sidebar.caption(

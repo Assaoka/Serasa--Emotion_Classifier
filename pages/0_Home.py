@@ -4,9 +4,12 @@ import auth_utils
 user_id = auth_utils.get_or_register_user()
 auth_utils.sidebar_login_info(show=True)
 
-st.markdown("""
-# Anotação de Sentimentos em Notícias Financeiras
+st.markdown("# Anotação de Sentimentos em Notícias Financeiras")
+st.image("assets/Parana.png", use_container_width=True)
+st.markdown("[Conheça o grupo de pesquisa PARANÁ no LinkedIn](https://www.linkedin.com/company/parana-unifesp/?viewAsMember=true)")
+st.write("---")
 
+st.markdown("""
 Bem-vindo ao nosso site, desenvolvido para envolver alunos no processo de anotação e análise de notícias econômicas em português. Aqui, você ajudará a construir uma base de dados de sentimentos e emoções aplicados a textos jornalísticos.
 
 ---
@@ -66,8 +69,7 @@ Bem-vindo ao nosso site, desenvolvido para envolver alunos no processo de anota�
 
 Se encontrar erros, inconsistências ou tiver sugestões de melhoria, entre em contato:
 
-- **João Assaoka**: joao.assaoka@unifesp.br  
-- **Thomas Correia**: correia.thomas@unifesp.br  
+- **João Assaoka**: joao.assaoka@unifesp.br ou WhatsApp (+55 31 99700-0405)
 
-Agradecemos sua colaboração e empenho no projeto!  
+Agradecemos sua colaboração e empenho no projeto!
 """)
