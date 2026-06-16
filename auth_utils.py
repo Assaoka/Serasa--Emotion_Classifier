@@ -11,7 +11,7 @@ def ensure_logged_in():
     if not st.user.is_logged_in:
         st.info("Você não está autenticado.")
         if st.button("Entrar com Google"):
-            st.login()
+            st.login("google")
         st.stop()
 
 
