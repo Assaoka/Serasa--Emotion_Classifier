@@ -1,10 +1,12 @@
 import os
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean, func, Float
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base, joinedload
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import random
 import streamlit as st
+import pandas as pd
+from types import SimpleNamespace
 
 Base = declarative_base()
 
@@ -40,26 +42,11 @@ class User(Base):
     
     evaluations = relationship("Evaluation", back_populates="user")
 
-class News(Base):
-    __tablename__ = 'news'
-    id = Column(Integer, primary_key=True, index=True)
-    headline = Column(String, nullable=False)
-    link = Column(String, nullable=False)
-    summary = Column(String, nullable=False)
-    f1 = Column(String, nullable=False)
-    f2 = Column(String, nullable=False)
-    f3 = Column(String, nullable=False)
-    prompt_tokens = Column(Integer)
-    completion_tokens = Column(Integer)
-    total_tokens = Column(Integer)
-    duration = Column(Float)
-    evaluations = relationship("Evaluation", back_populates="news")
-
 class Evaluation(Base):
     __tablename__ = 'evaluations'
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    news_id = Column(Integer, ForeignKey('news.id'), nullable=False)
+    news_id = Column(Integer, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
     # Classificações para manchete (inteiros: 1-7 emoção, 1-3 polaridade)
     headline_sentiment = Column(Integer, nullable=False)
@@ -76,7 +63,6 @@ class Evaluation(Base):
     general_polarity = Column(Integer, nullable=False)
 
     user = relationship("User", back_populates="evaluations")
-    news = relationship("News", back_populates="evaluations")
 
 
 class Term(Base):
@@ -118,35 +104,6 @@ def create_user(email: str, idade: int, genero: str, escolaridade: str,
         session.close()
 
 
-def create_news(headline: str, link: str, summary: str, f1: str, f2: str, f3: str,
-                prompt_tokens: int = None, completion_tokens: int = None,
-                total_tokens: int = None, duration: float = None) -> int:
-    """Insere uma notícia e retorna o ID."""
-    session = SessionLocal()
-    try:
-        news = News(
-            headline=headline,
-            link=link,
-            summary=summary,
-            f1=f1,
-            f2=f2,
-            f3=f3,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            total_tokens=total_tokens,
-            duration=duration,
-        )
-        session.add(news)
-        session.commit()
-        session.refresh(news)
-        return news.id
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
-
-
 def create_evaluation(user_id: int, news_id: int,
                        headline_sentiment: int, headline_polarity: int,
                        sentence_sentiments: list, sentence_polarities: list,
@@ -178,47 +135,66 @@ def create_evaluation(user_id: int, news_id: int,
         session.close()
 
 
-def get_random_news_with_three_sentences():
-    """Retorna uma notícia cujo resumo contém exatamente 3 frases."""
-    session = SessionLocal()
-    try:
-        all_news = session.query(News).all()
-        filtered = [n for n in all_news if n.f1 and n.f2 and n.f3]
-        if not filtered:
-            return None
-        return random.choice(filtered)
-    finally:
-        session.close()
+@st.cache_data
+def load_news_csv():
+    """Carrega o CSV de notícias filtradas e renomeia 'manchete' para 'headline' para compatibilidade."""
+    df = pd.read_csv("noticias_filtradas.csv")
+    if "manchete" in df.columns:
+        df = df.rename(columns={"manchete": "headline"})
+    return df
 
 
 def get_news_least_classified(user_id: int):
-    """Retorna aleatoriamente uma notícia com menor número de avaliações."""
+    """Retorna aleatoriamente uma notícia com menor número de avaliações no banco."""
     session = SessionLocal()
     try:
-        # total de avaliacoes por noticia (usuarios distintos)
-        counts = (
+        df = load_news_csv()
+        if df.empty:
+            return None
+            
+        # Filtra apenas notícias válidas
+        df_valid = df[df['f1'].notna() & df['f2'].notna() & df['f3'].notna()]
+        if df_valid.empty:
+            return None
+
+        # Conta avaliações por news_id no banco (usuários distintos)
+        eval_counts = (
             session.query(
-                News,
-                func.count(func.distinct(Evaluation.user_id)).label("cnt"),
+                Evaluation.news_id,
+                func.count(func.distinct(Evaluation.user_id)).label("cnt")
             )
-            .outerjoin(Evaluation)
-            .group_by(News.id)
+            .group_by(Evaluation.news_id)
             .all()
         )
-        # noticias ja avaliadas pelo usuario
+        counts_dict = {news_id: cnt for news_id, cnt in eval_counts}
+        
+        # Notícias já avaliadas pelo usuário
         evaluated = {
             n_id for (n_id,) in session.query(Evaluation.news_id).filter_by(user_id=user_id).all()
         }
-        candidates = [
-            (news, cnt)
-            for news, cnt in counts
-            if news.id not in evaluated and news.f1 and news.f2 and news.f3
-        ]
+        
+        # Lista candidatos e suas contagens
+        candidates = []
+        for _, row in df_valid.iterrows():
+            n_id = int(row['id'])
+            if n_id not in evaluated:
+                cnt = counts_dict.get(n_id, 0)
+                candidates.append((row, cnt))
+                
         if not candidates:
             return None
+            
         min_cnt = min(cnt for _, cnt in candidates)
-        pool = [news for news, cnt in candidates if cnt == min_cnt]
-        return random.choice(pool)
+        pool = [row for row, cnt in candidates if cnt == min_cnt]
+        selected = random.choice(pool)
+        
+        return SimpleNamespace(
+            id=int(selected['id']),
+            headline=selected['headline'],
+            f1=selected['f1'],
+            f2=selected['f2'],
+            f3=selected['f3']
+        )
     finally:
         session.close()
 
@@ -279,27 +255,39 @@ def email_exists(email: str) -> bool:
 
 
 def get_evaluations_by_user(user_id: int):
-    """Retorna todas as avaliações feitas por um usuário, incluindo a notícia."""
+    """Retorna todas as avaliações feitas por um usuário, injetando a notícia do CSV."""
     session = SessionLocal()
     try:
-        return (
-            session.query(Evaluation)
-            .options(joinedload(Evaluation.news))
-            .filter(Evaluation.user_id == user_id)
-            .all()
-        )
+        evals = session.query(Evaluation).filter(Evaluation.user_id == user_id).all()
+        df = load_news_csv()
+        news_dict = {
+            int(r['id']): SimpleNamespace(
+                id=int(r['id']),
+                headline=r['headline'],
+                f1=r['f1'],
+                f2=r['f2'],
+                f3=r['f3']
+            )
+            for _, r in df.iterrows()
+        }
+        for e in evals:
+            e.news = news_dict.get(e.news_id)
+        return evals
     finally:
         session.close()
 
 
 def get_news_by_id(news_id: int):
-    """
-    Retorna uma notícia a partir do ID.
-    
-    """
-    session = SessionLocal()
-    try:
-        news = session.query(News).filter(News.id == news_id).first()
-        return news
-    finally:
-        session.close()
+    """Retorna uma notícia do CSV a partir do ID."""
+    df = load_news_csv()
+    row = df[df['id'] == news_id]
+    if row.empty:
+        return None
+    selected = row.iloc[0]
+    return SimpleNamespace(
+        id=int(selected['id']),
+        headline=selected['headline'],
+        f1=selected['f1'],
+        f2=selected['f2'],
+        f3=selected['f3']
+    )
